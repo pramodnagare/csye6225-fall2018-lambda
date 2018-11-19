@@ -15,7 +15,7 @@ after_success:
 
   - zip lambda_function.zip lambda_function
   - mkdir codedeploy_artifact
-  - mv lambda_function.zip codedeploy_artifact/
+  - cp lambda_function codedeploy_artifact/
   - ls -lrt
   - pwd
   - cd codedeploy_artifact
@@ -26,18 +26,6 @@ after_success:
   - ls -al
   
 deploy:
-  - provider: s3
-    local_dir: codedeploy_artifact
-    bucket: $s3_bucket
-    region: us-east-1
-    skip_cleanup: true
-    access_key_id: $access_key_id
-    secret_access_key: $access_secret_key
-    acl: public_read
-    on:
-      branch: master
-      
-      
   - provider: lambda
     access_key_id: $access_key_id
     secret_access_key: $access_secret_key
@@ -46,6 +34,6 @@ deploy:
     zip: codedeploy_artifact
     region: "us-east-1"
     runtime: "nodejs8.10"
-    handler_name: "index.handler"
+    handler_name: "handler"
     on:
       branch: master
