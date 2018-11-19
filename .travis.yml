@@ -42,6 +42,7 @@ deploy:
     access_key_id: $access_key_id
     secret_access_key: $access_secret_key
     function_name: "travis_lambda"
+    role: $role_arn
     zip: lambda_function.zip
     region: "us-east-1"
     runtime: "nodejs8.10"
