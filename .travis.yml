@@ -21,7 +21,7 @@ after_success:
   - cd codedeploy_artifact
   - ls -al
   - pwd
-  - cd..
+  - cd ..
   - pwd
   - ls -al
   
