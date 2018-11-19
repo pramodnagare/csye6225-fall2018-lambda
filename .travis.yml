@@ -47,4 +47,4 @@ deploy:
     region: "us-east-1"
     role: $role_arn
     runtime: "nodejs8.10"
-    handler_name: "index.handler"
+    handler_name: "handler"
