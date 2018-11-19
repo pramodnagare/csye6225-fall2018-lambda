@@ -36,4 +36,16 @@ deploy:
     acl: public_read
     on:
       branch: master
-  
+      
+      
+  - provider: lambda
+    access_key_id: $access_key_id
+    secret_access_key: $access_secret_key
+    function_name: "travis_lambda"
+    zip: lambda_function.zip
+    region: "us-east-1"
+    role: $role_arn
+    runtime: "nodejs8.10"
+    handler_name: "index.handler"
+    on:
+      branch: master
