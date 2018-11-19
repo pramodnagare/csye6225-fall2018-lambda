@@ -13,7 +13,7 @@ script:
 
 after_success:
 
-  - zip lambda_function.zip lambda_function.js
+  - zip lambda_function.zip lambda_function
   - ls -lrt
   - pwd
 
