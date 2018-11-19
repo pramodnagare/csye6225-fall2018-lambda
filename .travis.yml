@@ -13,9 +13,9 @@ script:
 
 after_success:
 
-  - zip lambda_function.zip lambda_function
+  - zip lambda_function.zip index.js
   - mkdir codedeploy_artifact
-  - cp lambda_function codedeploy_artifact/
+  - cp index.js codedeploy_artifact/
   - ls -lrt
   - pwd
   - cd codedeploy_artifact
