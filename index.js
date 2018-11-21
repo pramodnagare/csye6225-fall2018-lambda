@@ -12,8 +12,9 @@ exports.handler = function(event, context, callback) {
     var msgArr=msgRaw.split("|");
     var useremail=msgArr[0];
     var Src=msgArr[1];
+    Src = "no-reply@"+Src;
     var DdbTable=msgArr[2];
-    var url=msgArr[3];
+    var url=msgArr[1];
     console.log(useremail);
     var qParams = {
       TableName: DdbTable,
