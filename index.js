@@ -1,25 +1,29 @@
-console.log('Loading updated function');
+//Getting AWS SDK object.
 var aws = require('aws-sdk');
+
+// Getting aws SES service object.
 var ses = new aws.SES({
    region: 'us-east-1'
 });
+
+// Getting AWS DynamoDB service object.
 var ddb = new aws.DynamoDB();
 
 exports.handler = function(event, context, callback) {
-    console.log("Incoming: ", event);
-    var msgRaw = event.Records[0].Sns.Message;
-    console.log(msgRaw);
-    var msgArr=msgRaw.split("|");
-    var useremail=msgArr[0];
-    var Src=msgArr[1];
-    Src = "no-reply@"+Src;
-    var DdbTable=msgArr[2];
-    var url=msgArr[1];
-    console.log(useremail);
+    console.log("Lambda Triggered by event: ", event);
+    var sns_msg = event.Records[0].Sns.Message;
+    console.log(sns_msg);
+    var msg_body=sns_msg.split("|");
+    var email_to=msg_body[0];
+    var email_from=msg_body[1];
+    email_from = "no-reply@"+email_from;
+    var dynamo_db=msg_body[2];
+    var reset_link=msg_body[1];
+    console.log(email_to);
     var qParams = {
-      TableName: DdbTable,
+      TableName: dynamo_db,
       Key: {
-        'id' : {S: useremail}
+        'id' : {S: email_to}
       },
       ExpressionAttributeNames:{
         "#tt": "ttl"
@@ -33,127 +37,56 @@ exports.handler = function(event, context, callback) {
       } else {
         if(Object.keys(data).length === 0 && data.constructor === Object)
         {
-          console.log(data);
-          console.log("New token generated");
-          console.log('Hello, Message received from SNS:', useremail);
-
-          console.log('===SENDING EMAIL===');
-          var currDate=new Date();
-          console.log("curr:"+currDate);
-          console.log("currs:"+Math.floor(currDate.getTime()/1000));
-          var ttl=Math.floor(currDate.setMinutes(currDate.getMinutes() + 20)/1000);
-          console.log("ttl:"+ttl);
+          console.log('Password reset request has been initiated by user: ', email_to);
+          
+          const ttl = require('uuid/v1');
+		      
+          console.log("Token Generated: "+ttl());
+          
+          console.log("ttl:"+ttl());
           var itemParams ={
-            TableName: DdbTable,
+            TableName: dynamo_db,
             Item:{
-              "id":{S:useremail},
-              "ttl":{N:ttl.toString()}
+              "id":{S:email_to},
+              "Token":{S:ttl()}
             }
           };
           ddb.putItem(itemParams, function(err) {
           if(err) console.log(err);
           else{
-            url=url+"/reset?email="+useremail+"&token="+ttl.toString();
-            console.log("url:"+url);
+            reset_link=reset_link+"/reset?email="+email_to+"&token="+ttl();
+            console.log("reset_link:"+reset_link);
             var eParams = {
               Destination: {
-                  ToAddresses: [useremail]
+                  ToAddresses: [email_to]
               },
               Message: {
                   Body: {
                       Html: {
                           Charset: 'UTF-8',
-                          Data: '<html><body><b>Please click here for the password reset:<a href=\"http://'+url+'\" target=\"_blank\">Reset Link</a></b></body></html>'
+                          Data: '<html><body><b>Hi, Your password reset link:<a href=\"'+reset_link+'" target=\"_blank\">Password Reset Link</a></b></body></html>'
                       }
                   },
                   Subject: {
-                      Data: "WebApp: Your reset password link is here!"
+                      Data: "CSYE6225: Reset your password!!"
                   }
               },
-              Source: Src
+              Source: email_from
             };
             var email = ses.sendEmail(eParams, function(err, data){
                 if(err) console.log(err);
                 else {
-                    console.log("===EMAIL SENT===");
-                    console.log(data);
-
-                    console.log("EMAIL CODE END");
-                    console.log('EMAIL: ', email);
+                    console.log("Sending Email to user: ");
+                    console.log("Email Data: " , email);
+					console.log("Email sent successfully!")
                     context.succeed(event);
                 }
             });
           }
         });
       }
-      else{
-            console.log("Token already exist.");
-            console.log(data);
-            var tkn_ttl=parseInt((JSON.stringify(data.Item.ttl.N)).replace('\"',''));
-            console.log("tkn_ttl:"+tkn_ttl);
-            var currDate=new Date();
-            var curr_ttl=Math.floor(currDate.getTime()/1000);
-            console.log("curr_ttl:"+curr_ttl);
-            console.log("diff:"+(curr_ttl-tkn_ttl))
-            if((curr_ttl-tkn_ttl)>0)
-            {
-              console.log(data);
-              console.log("New token updated");
-              console.log('Hello, Message received from SNS:', useremail);
-              console.log('===SENDING EMAIL===');
-              var currDate=new Date();
-              console.log("curr:"+currDate);
-              var ttl=Math.floor(currDate.setMinutes(currDate.getMinutes() + 20)/1000);
-              console.log("ttl:"+ttl);
-              var itemParams ={
-                TableName: DdbTable,
-                Item:{
-                  "id":{S:useremail},
-                  "ttl":{N:ttl.toString()}
-                }
-              };
-              ddb.putItem(itemParams, function(err) {
-              if(err) console.log(err);
-              else{
-                 url=url+"/reset?email="+useremail+"&token="+ttl.toString();
-                 console.log("url:"+url);
-                  var eParams = {
-                    Destination: {
-                        ToAddresses: [useremail]
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: '<html><body><b>Click Here:<a href=\"http://'+url+'\" target=\"_blank\">Reset Link</a></b></body></html>'
-                            }
-                        },
-                        Subject: {
-                            Data: "WebApp: Your reset password link is here!"
-                        }
-                    },
-                    Source: Src
-                };
-                console.log("EMAIL CODE END");
-                var email = ses.sendEmail(eParams, function(err, data){
-                  
-                    
-                    if(err) console.log(err);
-                    else {
-                        console.log("===EMAIL SENT===");
-                        console.log(data);
-
-                        console.log("EMAIL CODE END");
-                        console.log('EMAIL: ', email);
-                        context.succeed(event);
-                    }
-                });
-              }
-            });
-          }
-        }
+      else
+		  console.log("The user has already requested for password reset as the TTL token exists in the system.");
       }
   });
-
-//    callback(null, "Success");
 }
