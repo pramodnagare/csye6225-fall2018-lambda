@@ -48,4 +48,6 @@ deploy:
     role: $role_arn
     runtime: "nodejs8.10"
     handler_name: "handler"
+    on:
+      branch: master
 
