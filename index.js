@@ -66,7 +66,7 @@ exports.handler = function(event, context, callback) {
                   Body: {
                       Html: {
                           Charset: 'UTF-8',
-                          Data: '<html><body><b>Hi, Your password reset link:<a href=\"'+reset_link+'" target=\"_blank\">Password-Reset-Link</a></b></body></html>'
+                          Data: '<html><body><b>Hi, Your password reset link:<a href=\"'+reset_link+'" target=\"_blank\">Password_Reset_Link</a></b></body></html>'
                       }
                   },
                   Subject: {
