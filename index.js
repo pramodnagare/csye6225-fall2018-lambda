@@ -41,20 +41,22 @@ exports.handler = function(event, context, callback) {
           
           const ttl = require('uuid/v1');
 		      
-          console.log("Token Generated: "+ttl());
+		      var ttl_new = ttl();
+		      
+          console.log("Token Generated: "+ttl_new);
           
-          console.log("ttl:"+ttl());
+          console.log("ttl:"+ttl_new);
           var itemParams ={
             TableName: dynamo_db,
             Item:{
               "id":{S:email_to},
-              "Token":{S:ttl()}
+              "Token":{S:ttl_new}
             }
           };
           ddb.putItem(itemParams, function(err) {
           if(err) console.log(err);
           else{
-            reset_link=reset_link+"/reset?email="+email_to+"&token="+ttl();
+            reset_link=reset_link+"/reset?email="+email_to+"&token="+ttl_new;
             console.log("reset_link:"+reset_link);
             var eParams = {
               Destination: {
